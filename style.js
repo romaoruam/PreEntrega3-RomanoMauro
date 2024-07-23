@@ -1,126 +1,110 @@
-// Valor remera en Pesos Argentinos
 const productos = [
   { nombre: "Remera 1", precio: 6500 },
   { nombre: "Remera 2", precio: 6300 },
   { nombre: "Remera 3", precio: 7000 }
 ];
 
-// Capturar entradas mediante prompt()
-let nombreUsuario = prompt("Ingrese su nombre: ").toUpperCase();
-let apellidoUsuario = prompt("Ingrese su apellido: ").toUpperCase();
+document.addEventListener('DOMContentLoaded', () => {
+  // Variables y elementos del DOM
+  const nombreInput = document.getElementById('nombre');
+  const apellidoInput = document.getElementById('apellido');
+  const submitUserInfoButton = document.getElementById('submit-user-info');
+  const productosDiv = document.getElementById('productos');
+  const listaProductosUl = document.getElementById('lista-productos');
+  const detalleCompraDiv = document.getElementById('detalle-compra');
+  const detalleProductosDiv = document.getElementById('detalle-productos');
+  const totalCompraDiv = document.getElementById('total-compra');
+  const finalizarCompraButton = document.getElementById('finalizar-compra');
 
-// Saludo
-alert(`¡Hola ${nombreUsuario} ${apellidoUsuario}! Bienvenido a la tienda Yonkys`);
+  let productosSeleccionados = [];
+  let totalCantidadProductos = 0;
 
-// Función para mostrar opciones de productos
-function mostrarOpcionesProductos() {
-  let opcionesProductos = "\nOpciones de productos:\n";
-  productos.forEach((producto, index) => {
-    opcionesProductos += `${index + 1}. ${producto.nombre} - Precio: ${producto.precio}$\n`;
+  // Evento para capturar la información del usuario
+  submitUserInfoButton.addEventListener('click', () => {
+    const nombre = nombreInput.value.trim().toUpperCase();
+    const apellido = apellidoInput.value.trim().toUpperCase();
+
+    if (nombre && apellido) {
+      localStorage.setItem('nombre', nombre);
+      localStorage.setItem('apellido', apellido);
+      alert(`¡Hola ${nombre} ${apellido}! Bienvenido a la tienda Yonkys`);
+
+      productosDiv.style.display = 'block';
+      detalleCompraDiv.style.display = 'block';
+      mostrarOpcionesProductos();
+    } else {
+      alert('Por favor, ingrese su nombre y apellido.');
+    }
   });
-  return opcionesProductos;
-}
 
-// Función para solicitar y validar selección de producto
-function seleccionarProducto() {
-  let productoElegido = parseInt(prompt("Ingrese el número del producto que desea comprar: "));
-  
-  // Validar selección de producto
-  if (isNaN(productoElegido) || productoElegido < 1 || productoElegido > productos.length) {
-    alert("Error: El número de producto ingresado no es válido.");
-    return null;
-  } else {
-    return productos[productoElegido - 1];
+  // Función para mostrar opciones de productos
+  function mostrarOpcionesProductos() {
+    listaProductosUl.innerHTML = '';
+    productos.forEach((producto, index) => {
+      const li = document.createElement('li');
+      li.textContent = `${producto.nombre} - Precio: ${producto.precio}$`;
+      li.addEventListener('click', () => {
+        seleccionarProducto(producto);
+      });
+      listaProductosUl.appendChild(li);
+    });
   }
-}
 
-// Función para solicitar y vlidar cantidad de producto
-function ingresarCantidad(producto) {
-  let cantidadProducto = parseInt(prompt(`Ingrese la cantidad de ${producto.nombre} que desea comprar: `));
-  
-  // Validar cantidad del producto seleccionado
-  if (isNaN(cantidadProducto) || cantidadProducto < 1) {
-    alert("Error: La cantidad ingresada no es válida.");
-    return ingresarCantidad(producto); // Reintentar ingreso
-  } else {
-    return cantidadProducto;
-  }
-}
+  // Función para seleccionar un producto
+  function seleccionarProducto(producto) {
+    const cantidad = parseInt(prompt(`Ingrese la cantidad de ${producto.nombre} que desea comprar:`));
 
-// Función para calcular el total sin descuento
-function calcularTotal(producto, cantidad) {
-  return producto.precio * cantidad;
-}
+    if (!isNaN(cantidad) && cantidad > 0) {
+      const totalSinDescuento = calcularTotal(producto, cantidad);
 
-let continuar = true;
-let productosSeleccionados = [];
-let totalCantidadProductos = 0;
-
-while (continuar) {
-  // Mostrar opciones de producto
-  alert(mostrarOpcionesProductos());
-
-  // Solicitar selección de producto
-  let productoSeleccionado = seleccionarProducto();
-
-  if (productoSeleccionado !== null) {
-    // Mostrar información del producto seleccionado
-    alert(`Producto seleccionado: ${productoSeleccionado.nombre}`);
-
-    // Solicitar cantidad del producto seleccionado
-    let cantidadProducto = ingresarCantidad(productoSeleccionado);
-
-    if (cantidadProducto !== null) {
-      // Calcular total sin descuento
-      let totalSinDescuento = calcularTotal(productoSeleccionado, cantidadProducto);
-      alert(`Total: ${totalSinDescuento} pesos argentinos.`);
-
-      // Agregar producto al detalle
       productosSeleccionados.push({
-        producto: productoSeleccionado.nombre,
-        cantidad: cantidadProducto,
+        producto: producto.nombre,
+        cantidad: cantidad,
         totalSinDescuento: totalSinDescuento
       });
 
-      totalCantidadProductos += cantidadProducto;
-
-      // Preguntar si desea seguir comprando
-      continuar = confirm("¿Desea agregar más productos?");
+      totalCantidadProductos += cantidad;
+      actualizarDetalleCompra();
+    } else {
+      alert('Error: La cantidad ingresada no es válida.');
     }
-  } else {
-    continuar = false;
   }
-}
 
-// Calcular total sin descuento de todos los productos seleccionados
-let totalProductosSinDescuento = productosSeleccionados.reduce((total, producto) => total + producto.totalSinDescuento, 0);
+  // Función para calcular el total sin descuento
+  function calcularTotal(producto, cantidad) {
+    return producto.precio * cantidad;
+  }
 
-// Aplicar descuento solo al final si corresponde más de 3 productos
-let totalProductosConDescuento = totalProductosSinDescuento;
-if (totalCantidadProductos > 3) {
-  totalProductosConDescuento = aplicarDescuento(totalProductosSinDescuento, 10);
-}
+  // Función para actualizar el detalle de la compra
+  function actualizarDetalleCompra() {
+    detalleProductosDiv.innerHTML = '';
+    productosSeleccionados.forEach((producto, index) => {
+      const div = document.createElement('div');
+      div.textContent = `Producto ${index + 1}: ${producto.producto} - Cantidad: ${producto.cantidad} - Total: ${producto.totalSinDescuento} pesos argentinos`;
+      detalleProductosDiv.appendChild(div);
+    });
 
-// Función para aplicar descuento al total final si corresponde
-function aplicarDescuento(total, porcentajeDescuento) {
-  return total * (1 - porcentajeDescuento / 100);
-}
+    let totalProductosSinDescuento = productosSeleccionados.reduce((total, producto) => total + producto.totalSinDescuento, 0);
+    let totalProductosConDescuento = totalProductosSinDescuento;
 
-// Mostrar detalle de productos seleccionados
-let detalleProductos = "\nDetalle de Productos Seleccionados:\n";
-productosSeleccionados.forEach((producto, index) => {
-  detalleProductos += `Producto ${index + 1}: ${producto.producto} - Cantidad: ${producto.cantidad} - Total: ${producto.totalSinDescuento} pesos argentinos\n`;
+    if (totalCantidadProductos > 3) {
+      totalProductosConDescuento = aplicarDescuento(totalProductosSinDescuento, 10);
+    }
+
+    totalCompraDiv.textContent = `Total de Productos Seleccionados: ${totalCantidadProductos}\nTotal a Pagar: ${totalProductosConDescuento} pesos argentinos`;
+  }
+
+  // Función para aplicar descuento al total final si corresponde
+  function aplicarDescuento(total, porcentajeDescuento) {
+    return total * (1 - porcentajeDescuento / 100);
+  }
+
+  // Evento para finalizar la compra
+  finalizarCompraButton.addEventListener('click', () => {
+    alert('Gracias por su compra. ¡Hasta luego!');
+    localStorage.clear();
+    productosSeleccionados = [];
+    totalCantidadProductos = 0;
+    actualizarDetalleCompra();
+  });
 });
-
-// Mostrar total de productos y aplicar descuento si corresponde
-if (productosSeleccionados.length > 0) {
-  if (totalCantidadProductos > 3) {
-    alert(`${detalleProductos}\nTotal de Productos Seleccionados: ${totalCantidadProductos}\nTotal a Pagar con Descuento del 10%: ${totalProductosConDescuento} pesos argentinos`);
-  } else {
-    alert(`${detalleProductos}\nTotal de Productos Seleccionados: ${totalCantidadProductos}\nTotal a Pagar: ${totalProductosConDescuento} pesos argentinos`);
-  }
-} else {
-  alert("No se han seleccionado productos.");
-}
-
-alert("Gracias por su compra. ¡Hasta luego!");
