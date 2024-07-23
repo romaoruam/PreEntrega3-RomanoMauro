@@ -1,2 +1,2 @@
-Segunda pre-entrega para curso Javascript de Coderhouse -
+Tercera pre-entrega para curso Javascript de Coderhouse -
 Romano Mauro
