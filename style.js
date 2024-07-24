@@ -10,7 +10,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const apellidoInput = document.getElementById('apellido');
   const submitUserInfoButton = document.getElementById('submit-user-info');
   const productosDiv = document.getElementById('productos');
-  const listaProductosUl = document.getElementById('lista-productos');
+  const listaProductosDiv = document.getElementById('lista-productos');
   const detalleCompraDiv = document.getElementById('detalle-compra');
   const detalleProductosDiv = document.getElementById('detalle-productos');
   const totalCompraDiv = document.getElementById('total-compra');
@@ -18,6 +18,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   let productosSeleccionados = [];
   let totalCantidadProductos = 0;
+  let totalProductosSinDescuento = 0;
+  let descuentoAplicado = false;
 
   // Evento para capturar la información del usuario
   submitUserInfoButton.addEventListener('click', () => {
@@ -39,14 +41,27 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Función para mostrar opciones de productos
   function mostrarOpcionesProductos() {
-    listaProductosUl.innerHTML = '';
+    listaProductosDiv.innerHTML = '';
     productos.forEach((producto, index) => {
-      const li = document.createElement('li');
-      li.textContent = `${producto.nombre} - Precio: ${producto.precio}$`;
-      li.addEventListener('click', () => {
-        seleccionarProducto(producto);
+      const card = document.createElement('div');
+      card.className = 'card product-card';
+      card.style.width = '16rem'; // Ajustado el tamaño de la card
+      card.innerHTML = `
+        <div class="card-body">
+          <h5 class="card-title">${producto.nombre}</h5>
+          <p class="card-text">Precio: ${producto.precio}$</p>
+          <button class="btn btn-primary" data-index="${index}">Agregar al carrito</button>
+        </div>
+      `;
+      listaProductosDiv.appendChild(card);
+    });
+
+    // Agregar evento a los botones de agregar al carrito
+    listaProductosDiv.querySelectorAll('.btn-primary').forEach(button => {
+      button.addEventListener('click', () => {
+        const index = button.getAttribute('data-index');
+        seleccionarProducto(productos[index]);
       });
-      listaProductosUl.appendChild(li);
     });
   }
 
@@ -64,6 +79,7 @@ document.addEventListener('DOMContentLoaded', () => {
       });
 
       totalCantidadProductos += cantidad;
+      totalProductosSinDescuento = productosSeleccionados.reduce((total, producto) => total + producto.totalSinDescuento, 0);
       actualizarDetalleCompra();
     } else {
       alert('Error: La cantidad ingresada no es válida.');
@@ -80,18 +96,29 @@ document.addEventListener('DOMContentLoaded', () => {
     detalleProductosDiv.innerHTML = '';
     productosSeleccionados.forEach((producto, index) => {
       const div = document.createElement('div');
-      div.textContent = `Producto ${index + 1}: ${producto.producto} - Cantidad: ${producto.cantidad} - Total: ${producto.totalSinDescuento} pesos argentinos`;
+      div.innerHTML = `
+        Producto ${index + 1}: ${producto.producto} - Cantidad: ${producto.cantidad} - Total: ${producto.totalSinDescuento} pesos argentinos
+        <button class="btn btn-danger btn-sm" data-index="${index}">Eliminar</button>
+      `;
       detalleProductosDiv.appendChild(div);
     });
 
-    let totalProductosSinDescuento = productosSeleccionados.reduce((total, producto) => total + producto.totalSinDescuento, 0);
-    let totalProductosConDescuento = totalProductosSinDescuento;
+    let totalConDescuento = totalProductosSinDescuento;
+    let mensajeDescuento = '';
 
-    if (totalCantidadProductos > 3) {
-      totalProductosConDescuento = aplicarDescuento(totalProductosSinDescuento, 10);
+    if (totalCantidadProductos >= 3) {
+      totalConDescuento = aplicarDescuento(totalProductosSinDescuento, 10);
+      descuentoAplicado = true;
+      mensajeDescuento = ` (Se aplicó un descuento del 10%)`;
+    } else {
+      descuentoAplicado = false;
     }
 
-    totalCompraDiv.textContent = `Total de Productos Seleccionados: ${totalCantidadProductos}\nTotal a Pagar: ${totalProductosConDescuento} pesos argentinos`;
+    totalCompraDiv.innerHTML = `
+      Total de Productos Seleccionados: ${totalCantidadProductos}<br>
+      Total Sin Descuento: ${totalProductosSinDescuento} pesos argentinos<br>
+      Total a Pagar${mensajeDescuento}: ${totalConDescuento} pesos argentinos
+    `;
   }
 
   // Función para aplicar descuento al total final si corresponde
@@ -99,12 +126,38 @@ document.addEventListener('DOMContentLoaded', () => {
     return total * (1 - porcentajeDescuento / 100);
   }
 
+  // Función para eliminar un producto del carrito
+  function eliminarProducto(index) {
+    totalCantidadProductos -= productosSeleccionados[index].cantidad;
+    productosSeleccionados.splice(index, 1);
+    totalProductosSinDescuento = productosSeleccionados.reduce((total, producto) => total + producto.totalSinDescuento, 0);
+    actualizarDetalleCompra();
+  }
+
   // Evento para finalizar la compra
   finalizarCompraButton.addEventListener('click', () => {
-    alert('Gracias por su compra. ¡Hasta luego!');
+    const totalConDescuento = totalCantidadProductos >= 3 
+      ? aplicarDescuento(totalProductosSinDescuento, 10)
+      : totalProductosSinDescuento;
+
+    if (descuentoAplicado) {
+      alert(`Gracias por su compra. Se aplicó un descuento del 10%. Total Sin Descuento: ${totalProductosSinDescuento} pesos argentinos. Total a Pagar: ${totalConDescuento} pesos argentinos.`);
+    } else {
+      alert(`Gracias por su compra. Total Sin Descuento: ${totalProductosSinDescuento} pesos argentinos. Total a Pagar: ${totalConDescuento} pesos argentinos.`);
+    }
+
     localStorage.clear();
     productosSeleccionados = [];
     totalCantidadProductos = 0;
+    totalProductosSinDescuento = 0;
     actualizarDetalleCompra();
+  });
+
+  // Evento para eliminar productos del carrito
+  detalleProductosDiv.addEventListener('click', (event) => {
+    if (event.target.classList.contains('btn-danger')) {
+      const index = event.target.getAttribute('data-index');
+      eliminarProducto(index);
+    }
   });
 });
