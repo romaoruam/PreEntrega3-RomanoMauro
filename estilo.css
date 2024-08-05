@@ -1,108 +1,18 @@
-/* Estilos para index.html */
-
-body {
-  font-family: Arial, sans-serif;
-  margin: 0;
-  padding: 0;
-  background-color: #f8f9fa;
-}
-
-h1 {
-  text-align: center;
-  margin-top: 20px;
-}
-
-#user-info {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin: 20px;
-}
-
-#user-info label {
-  margin-top: 10px;
-}
-
-#user-info input {
-  margin: 5px 0;
-}
-
-#user-info button {
-  margin-top: 20px;
-}
-
-@media (min-width: 768px) {
-  #user-info {
-    width: 50%;
-    margin: 20px auto;
-  }
-}
-
 /* Estilos para cart.html */
 
-body {
-  font-family: Arial, sans-serif;
-  margin: 0;
-  padding: 0;
-  background-color: #f8f9fa;
+#detalle-productos {
+  display: flex;
+  flex-direction: column; /* Muestra los productos en una columna */
+  align-items: center; /* Centra los productos horizontalmente */
 }
 
-h1, h2 {
-  text-align: center;
-  margin-top: 20px;
-}
-
-.product-card {
+#detalle-productos div {
+  width: 100%; /* Ajusta el ancho para ocupar el contenedor */
+  max-width: 15rem; /* Opcional: define un ancho máximo para los elementos */
+  margin-bottom: 1rem; /* Espacio entre los elementos */
   border: 1px solid #ddd;
   border-radius: 8px;
   padding: 16px;
-  margin: 16px;
   text-align: center;
   background-color: #fff;
-}
-
-.product-card h5 {
-  margin: 0;
-}
-
-.product-card p {
-  margin: 8px 0;
-}
-
-.product-card input {
-  margin-bottom: 10px;
-}
-
-.product-card button {
-  padding: 8px 16px;
-  border: none;
-  background-color: #28a745;
-  color: #fff;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-.product-card button:hover {
-  background-color: #218838;
-}
-
-#detalle-compra {
-  margin: 20px;
-}
-
-#detalle-productos {
-  margin-bottom: 20px;
-}
-
-#total-compra {
-  font-weight: bold;
-  margin-top: 10px;
-}
-
-.btn-danger {
-  background-color: #dc3545;
-}
-
-.btn-danger:hover {
-  background-color: #c82333;
 }
